@@ -7,10 +7,28 @@ from src.plotting import plot_graph
 
 def dijkstra_sp(G: nx.Graph, source_node="0") -> dict[Any, list[Any]]:
     shortest_paths = {}  # key = destination node, value = list of intermediate nodes
-
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
+    shortest_paths[source_node] = [source_node]
+    
+    visited = set()
+    distance = {neighbor: np.inf for neighbor in G.nodes}
+    if distance == source_node:
+        return 0
+    
+    q = queue.PriorityQueue()
+    q.put((0, source_node))
+    
+    while not q.empty():
+        length, node = q.get()
+        if node not in visited:
+            visited.add(node)
+            
+        for neighbor in G.neighbors(node):
+            if neighbor not in visited:
+                current_length = length + G.edges[neighbor, node]["weight"]
+            if current_length < distance[neighbor]:
+                shortest_paths[neighbor] = [neighbor] + shortest_paths[node]
+                distance[neighbor] = current_length
+                q.put((distance[neighbor], neighbor))
 
     return shortest_paths
 
