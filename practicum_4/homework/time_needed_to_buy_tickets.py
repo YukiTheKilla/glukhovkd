@@ -1,4 +1,5 @@
 from typing import Any
+from queue import Queue
 
 import yaml
 import numpy as np
@@ -6,14 +7,20 @@ import numpy as np
 
 def time_taken(tickets: list[int], k: int) -> int:
     seconds_elapsed = 0
-
-    for i in range(len(tickets)):
-            if i > k:
-                seconds_elapsed += min(tickets[i], tickets[k] - 1)
-            else:
-                seconds_elapsed += min(tickets[i], tickets[k])
-
-    return seconds_elapsed
+    
+    queue = Queue()
+    for i, v in enumerate(tickets):
+        queue.put((i, v))
+    
+    while queue:
+        num, rem = queue.get()
+        rem -= 1
+        seconds_elapsed += 1
+        if not rem:
+            if num == k:
+                return seconds_elapsed
+        else:
+            queue.put((num, rem))
 
 
 if __name__ == "__main__":
