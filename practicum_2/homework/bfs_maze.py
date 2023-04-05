@@ -1,3 +1,4 @@
+from queue import Queue
 from time import perf_counter
 
 
@@ -39,9 +40,21 @@ class Maze:
 def solve(maze: Maze) -> None:
     path = ""  # solution as a string made of "L", "R", "U", "D"
 
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
+    q = Queue()
+    q.put(((0, maze.start_j), path))
+
+    while not q.empty():
+        coord, path = q.get()
+        
+        #if find "X"
+        if maze.list_view[coord[0]][coord[1]] == 'X':
+            break
+        
+        #next move
+        for move in ('L', 'R', 'U', 'D'):
+            next = _shift_coordinate(coord[0], coord[1], move)
+            if  maze.list_view[next[0]][next[1]] != '#' and 0 <= next[0] < len(maze.list_view):
+                q.put((next, path + move))
 
     print(f"Found: {path}")
     maze.print(path)
