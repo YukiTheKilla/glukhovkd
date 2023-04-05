@@ -10,20 +10,44 @@ def visit(node: Any):
     print(f"Wow, it is {node} right here!")
 
 
-def dfs_iterative(G: nx.Graph, node: Any):
+def dfs_iterative(G: nx.Graph, node: Any) -> None:
     visited = {n: False for n in G}
-
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
+    
+    q = queue.LifoQueue()
+    q.put(node)
+    
+    while not q.empty():
+        point = q.get()
+        if visited[point]:
+            continue
+        visit(point)
+        visited[point] = 1
+        
+        nonvisited = list(filter(lambda neighbor: \
+        not visited[neighbor], G.neighbors(point)))
+        for neighbor in nonvisited:
+            q.put(neighbor)
 
 
 def topological_sort(G: nx.DiGraph, node: Any):
     visited = {n: False for n in G}
-
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
+    
+    q = queue.LifoQueue()
+    q.put(node)
+    
+    while not q.empty():
+        point = q.get()
+        if visited[point]:
+            continue
+        visit(point)
+        visited[point] = 1
+        
+        unvisited = list(filter(lambda ancestors: \
+        not visited[ancestors], \
+        nx.ancestors(G,point)))
+        if len(unvisited) <= 0:
+            for successors in G.successors(point):
+                q.put(successors)
 
 
 if __name__ == "__main__":
