@@ -10,12 +10,19 @@ def convex_bucket(points: NDArray) -> NDArray:
     """Complexity: O(n log n)"""
     clockwise_sorted_ch = []
 
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
+    def right_turn(p1, p2, p3):
+        return np.cross(p2 - p1, p3 - p1) <= 0
 
-    return np.array(clockwise_sorted_ch)
+    def build_bucket(sorted_points):
+        hull = []
+        for point in sorted_points:
+            while len(hull) >= 2 and right_turn(hull[-2], hull[-1], point):
+                hull.pop()
+            hull.append(point)
+        return hull
 
+    shell = build_bucket(sorted(points, key=lambda x: x[0]))
+    return np.array(shell + shell[-2::-1])
 
 if __name__ == "__main__":
     for i in range(1, 11):
