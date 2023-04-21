@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import ctypes
 import yaml
 
 
@@ -9,53 +10,39 @@ import yaml
 class Element:
     key: Any
     data: Any = None
-    np: int = None
+    np: int = 0
 
     def next(self) -> Element:
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
-
+        return self.np ^ prev_p
     def prev(self) -> Element:
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
-
+        return self.np ^ next_p
 
 class XorDoublyLinkedList:
     def __init__(self) -> None:
         self.head: Element = None
+        self.tail: Element = None
+        self.nodes: list[Element] = []
 
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        node_keys = []
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        return " <-> ".join(node_keys)
-
+        return " <-> ".join(str(current.key) for current in iter(self))
+        
+    def get(self, p_id: int) -> Element:
+        return ctypes.cast(p_id, ctypes.py_object).value
+        
     def to_pylist(self) -> list[Any]:
         py_list = []
-        next_el: Element = self.head()
-        while next_el is not None:
+        next_id = id(self.head)
+        prev_id = 0
+
+        while next_id != 0:
+            next_el = ctypes.cast(next_id, ctypes.py_object).value
             py_list.append(next_el.key)
-            next_el = next_el.next()
+            prev_id, next_id = next_id, next_el.next(prev_id)
+
         return py_list
 
     def empty(self):
@@ -63,44 +50,64 @@ class XorDoublyLinkedList:
 
     def search(self, k: Element) -> Element:
         """Complexity: O(n)"""
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
+        if self.empty():
+            raise ValueError("List empty")
+        node = self.head
+        while node and node.key != k.key:
+            node = node.next(id(node))
+        if not node:
+            raise ValueError("List havnt got this element")
+        return node
 
     def insert(self, x: Element) -> None:
         """Insert to the front of the list (i.e., it is 'prepend')
         Complexity: O(1)
         """
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
+        if self.head is None:
+            self.head = self.tail = x
+        else:
+            x.np = id(self.head)
+            self.head.np ^= id(x)
+            self.head, x = x, self.head
+        self.nodes.insert(0, x)
+    def _get_element(self, p_id: int) -> Element:
+        return ctypes.cast(p_id, ctypes.py_object).value
 
     def remove(self, x: Element) -> None:
         """Remove x from the list
         Complexity: O(1)
         """
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
+        curr_id,prev_id,curr_el = id(self.head),0,self.head
+        
+        while curr_id and curr_el.key != x.key:
+            prev_id, curr_id = curr_id, curr_el.next(prev_id)
+            curr_el = self.get(curr_id)
+        if curr_id:
+            next_id = curr_el.next(prev_id)
+            if next_id:
+                next_el = self.get(next_id)
+                next_el.np = next_el.np ^ curr_id ^ prev_id
+            else:
+                self.tail = prev_el
+            if prev_id:
+                prev_el = self.get(prev_id)
+                prev_el.np = prev_el.np ^ curr_id ^ next_id
+            else:
+                self.head = next_id
+                prev_el = None
+            self.nodes.remove(curr_el)
+        else:
+            raise ValueError("Element not found in the list.")
 
     def reverse(self) -> XorDoublyLinkedList:
         """Returns the same list but in the reserved order
         Complexity: O(1)
         """
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
+        if not self:
+            raise ValueError("List is empty!")
+    
+        self.head, self.tail = self.tail, self.head
+        return self
 
 
 if __name__ == "__main__":
@@ -119,12 +126,12 @@ if __name__ == "__main__":
     for i, c in enumerate(cases):
         l = XorDoublyLinkedList()
         for el in reversed(c["input"]["list"]):
-            l.insert(el)
+            l.insert(Element(key=el))
         for op_info in c["input"]["ops"]:
             if op_info["op"] == "insert":
-                l.remove(op_info["key"])
+                l.insert(Element(key=op_info["key"]))
             elif op_info["op"] == "remove":
-                l.remove(op_info["key"])
+                l.remove(Element(key=op_info["key"]))
             elif op_info["op"] == "reverse":
                 l = l.reverse()
         py_list = l.to_pylist()
