@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
+from collections import deque
 
 import yaml
 
@@ -21,22 +22,33 @@ class BinaryTree:
         return self.root is None
 
     def zigzag_level_order_traversal(self) -> list[Any]:
-
-        ##########################
-        ### PUT YOUR CODE HERE ###
-        ##########################
-
-        pass
+        if not self.root:
+            return []
+    
+        levels, q, reverse = [], deque([self.root]), False
+    
+        while q:
+            level = [q.popleft() for _ in range(len(q))]
+            if reverse:
+                level = level[::-1]
+            levels.append([node.key for node in level])
+            q += [child for node in level for child in (node.left, node.right) if child]
+            reverse = not reverse
+    
+        return levels
 
 
 def build_tree(list_view: list[Any]) -> BinaryTree:
     bt = BinaryTree()
-
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
-
-    pass
+    nodes = [Node(val) if val is not None else None for val in list_view]
+    if nodes:
+        children = nodes[::-1]
+        bt.root = children.pop()
+        for node in nodes:
+            if node:
+                node.left = children.pop() if children else None
+                node.right = children.pop() if children else None
+    return bt
 
 
 if __name__ == "__main__":
