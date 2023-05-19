@@ -3,17 +3,44 @@ from numpy.typing import NDArray
 
 
 def lu(A: NDArray, permute: bool) -> tuple[NDArray, NDArray, NDArray]:
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
-    pass
+    n = A.shape[0]  # Assuming A is a square matrix
+    L = np.eye(n)  # Initialize L as an identity matrix
+    U = np.copy(A)  # Initialize U as a copy of A
+    P = np.eye(n)  # Initialize P as an identity matrix
+
+    for k in range(n - 1):
+        if permute:
+            # Partial pivoting
+            pivot_index = np.argmax(np.abs(U[k:, k])) + k
+            U[[k, pivot_index], k:] = U[[pivot_index, k], k:]
+            L[[k, pivot_index], :k] = L[[pivot_index, k], :k]
+            P[[k, pivot_index], :] = P[[pivot_index, k], :]
+
+        for i in range(k + 1, n):
+            L[i, k] = U[i, k] / U[k, k]
+            U[i, k:] -= L[i, k] * U[k, k:]
+
+    return L, U, P
 
 
 def solve(L: NDArray, U: NDArray, P: NDArray, b: NDArray) -> NDArray:
-    ##########################
-    ### PUT YOUR CODE HERE ###
-    ##########################
-    pass
+    n = L.shape[0]  # Assuming L is a square matrix
+
+    # Permute b according to P
+    b_permuted = np.matmul(P, b)
+
+    # Solve Ly = b_permuted using forward substitution with permutation
+    y = np.zeros(n)
+    for i in range(n):
+        y[i] = b_permuted[i] - np.dot(L[i, :i], y[:i])
+
+    # Solve Ux = y using backward substitution
+    x = np.zeros(n)
+    for i in range(n - 1, -1, -1):
+        x[i] = (y[i] - np.dot(U[i, i+1:], x[i+1:])) / U[i, i]
+
+    return x
+
 
 
 def get_A_b(a_11: float, b_1: float) -> tuple[NDArray, NDArray]:
